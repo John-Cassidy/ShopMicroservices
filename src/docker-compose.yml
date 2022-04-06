@@ -70,13 +70,15 @@ services:
       context: .
       dockerfile: WebApps/AspnetRunBasics/Dockerfile
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.1
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.1
+
 volumes:
   mongo_data:
   portainer_data:
   postgres_data:
   pgadmin_data:
-
-
-
-
-
+  elasticsearch-data:
