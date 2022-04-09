@@ -27,17 +27,20 @@ namespace Shopping.Aggregator {
             services.AddHttpClient<ICatalogService, CatalogService>(c =>
                    c.BaseAddress = new Uri(Configuration["ApiSettings:CatalogUrl"]))
                    .AddHttpMessageHandler<LoggingDelegatingHandler>()
-                   .AddPolicyHandler(GetRetryPolicy());
+                   .AddPolicyHandler(GetRetryPolicy())
+                   .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<IBasketService, BasketService>(c =>
                 c.BaseAddress = new Uri(Configuration["ApiSettings:BasketUrl"]))
                 .AddHttpMessageHandler<LoggingDelegatingHandler>()
-                .AddPolicyHandler(GetRetryPolicy());
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
             services.AddHttpClient<IOrderService, OrderService>(c =>
                 c.BaseAddress = new Uri(Configuration["ApiSettings:OrderingUrl"]))
                 .AddHttpMessageHandler<LoggingDelegatingHandler>()
-                .AddPolicyHandler(GetRetryPolicy());
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
 
             services.AddControllers();
@@ -81,5 +84,13 @@ namespace Shopping.Aggregator {
                     });
         }
 
+        private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy() {
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(
+                    handledEventsAllowedBeforeBreaking: 5,
+                    durationOfBreak: TimeSpan.FromSeconds(30)
+                );
+        }
     }
 }
