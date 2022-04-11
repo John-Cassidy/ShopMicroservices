@@ -76,6 +76,12 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.14.1
 
+  webstatus:
+    image: ${DOCKER_REGISTRY-}webstatus
+    build:
+      context: .
+      dockerfile: WebApps/WebStatus/Dockerfile
+
 volumes:
   mongo_data:
   portainer_data:
