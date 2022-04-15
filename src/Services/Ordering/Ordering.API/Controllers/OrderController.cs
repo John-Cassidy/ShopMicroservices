@@ -30,7 +30,7 @@ namespace Ordering.API.Controllers
             return Ok(orders);
         }
 
-        // NOTE: this api method will eventually be replaced by implementation of RabbitMQ event to checkout order
+        // NOTE: this api method will eventually be replaced by implementation of RabbitMQ event to checkout order - BasketCheckoutConsumer : IConsumer<BasketCheckoutEvent>
         [HttpPost(Name = "CheckoutOrder")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<ActionResult<int>> CheckoutOrder([FromBody] CheckoutOrderCommand command) {
