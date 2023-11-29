@@ -1,0 +1,517 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-microservices-app
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogdb
+  labels:
+    app: catalogdb
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: catalogdb
+  template:
+    metadata:
+      labels:
+        app: catalogdb
+  spec:
+    containers:
+      - name: catalogdb
+        image: mongo
+        ports:
+          - containerPort: 2017
+        resources:
+          limits:
+            cpu: '500m'
+            memory: '128Mi'              
+          requests:
+            cpu: '250m'
+            memory: '64Mi'
+        env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: mongo-root-password
+        volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+    volumes:
+      - name: mongo-data
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  namespace: shop-microservices-app
+spec:
+  selector:
+    app: catalogdb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongo-secret  
+  namespace: shop-microservices-app
+type: Opaque
+data:
+  mongo-root-username: dXNlcm5hbWU=
+  mongo-root-password: cGFzc3dvcmQ=
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-configmap
+  namespace: shop-microservices-app
+data:
+  connection_string: mongodb://username:password@mongo-service:27017
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basketdb
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: basketdb
+  template:
+    metadata:
+      labels:
+        app: basketdb
+    spec:
+      containers:
+        - name: basketdb
+          image: redis:alpine
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discountdb
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: discountdb
+  template:
+    metadata:
+      labels:
+        app: discountdb
+    spec:
+      containers:
+        - name: discountdb
+          image: postgres
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderdb
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: orderdb
+  template:
+    metadata:
+      labels:
+        app: orderdb
+    spec:
+      containers:
+        - name: orderdb
+          image: mcr.microsoft.com/mssql/server:2019-latest
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3-management-alpine
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      containers:
+        - name: pgadmin
+          image: dpage/pgadmin4
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portainer
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: portainer
+  template:
+    metadata:
+      labels:
+        app: portainer
+    spec:
+      containers:
+        - name: portainer
+          image: portainer/portainer-ce
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-api
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: catalog-api
+  template:
+    metadata:
+      labels:
+        app: catalog-api
+    spec:
+      containers:
+        - name: catalog-api
+          image: catalogapi
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basket-api
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: basket-api
+  template:
+    metadata:
+      labels:
+        app: basket-api
+    spec:
+      containers:
+        - name: basket-api
+          image: basketapi
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-api
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: discount-api
+  template:
+    metadata:
+      labels:
+        app: discount-api
+    spec:
+      containers:
+        - name: discount-api
+          image: discountapi
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discount-grpc
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: discount-grpc
+  template:
+    metadata:
+      labels:
+        app: discount-grpc
+    spec:
+      containers:
+        - name: discount-grpc
+          image: discountgrpc
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ordering-api
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: ordering-api
+  template:
+    metadata:
+      labels:
+        app: ordering-api
+    spec:
+      containers:
+        - name: ordering-api
+          image: orderingapi
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocelot-apigw
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: ocelot-apigw
+  template:
+    metadata:
+      labels:
+        app: ocelot-apigw
+    spec:
+      containers:
+        - name: ocelot-apigw
+          image: ocelotapigw
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-aggregator
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: shopping-aggregator
+  template:
+    metadata:
+      labels:
+        app: shopping-aggregator
+    spec:
+      containers:
+        - name: shopping-aggregator
+          image: shoppingaggregator
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aspnetrun-basics
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: aspnetrun-basics
+  template:
+    metadata:
+      labels:
+        app: aspnetrun-basics
+    spec:
+      containers:
+        - name: aspnetrun-basics
+          image: aspnetrunbasics
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:7.14.1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:7.14.1
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webstatus
+  namespace: shop-microservices-app
+spec:
+  selector:
+    matchLabels:
+      app: webstatus
+  template:
+    metadata:
+      labels:
+        app: webstatus
+    spec:
+      containers:
+        - name: webstatus
+          image: webstatus
+          ports:
+            - containerPort: 80
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-data
+  namespace: shop-microservices-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: portainer-data
+  namespace: shop-microservices-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: shop-microservices-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-data
+  namespace: shop-microservices-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: elasticsearch-data
+  namespace: shop-microservices-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
