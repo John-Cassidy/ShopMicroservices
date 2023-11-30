@@ -45,8 +45,8 @@ spec:
                   name: mongo-secret
                   key: mongo-root-password
         volumeMounts:
-            - name: mongo-data
-              mountPath: /data/db
+          - name: mongo-data
+            mountPath: /data/db
     volumes:
       - name: mongo-data
         emptyDir: {}
@@ -94,6 +94,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: basketdb
+  labels:
+    app: basketdb
   namespace: shop-microservices-app
 spec:
   selector:
@@ -107,13 +109,29 @@ spec:
       containers:
         - name: basketdb
           image: redis:alpine
-
+          ports:
+            - containerPort: 6379
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '256Mi'              
+            requests:
+              cpu: '250m'
+              memory: '128Mi'
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data/redis
+      volumes:
+        - name: redis-data
+          emptyDir: {}
 ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: discountdb
+  labels:
+    app: discountdb
   namespace: shop-microservices-app
 spec:
   selector:
