@@ -145,7 +145,21 @@ spec:
       containers:
         - name: discountdb
           image: postgres
-
+          ports:
+            - containerPort: 6379
+          resources:
+            limits:
+              cpu: '500m'
+              memory: '256Mi'              
+            requests:
+              cpu: '250m'
+              memory: '128Mi'
+          volumeMounts:
+            - name: discountdb-data
+              mountPath: /data/discountdb
+      volumes:
+        - name: discountdb-data
+          emptyDir: {}
 ---
 
 apiVersion: apps/v1
