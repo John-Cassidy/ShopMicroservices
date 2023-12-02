@@ -47,7 +47,12 @@ namespace Ordering.API {
                     });
                 });
             });
-            services.AddMassTransitHostedService();
+
+            services.Configure<MassTransitHostOptions>(options => {
+                options.WaitUntilStarted = true;
+                options.StartTimeout = TimeSpan.FromSeconds(30);
+                options.StopTimeout = TimeSpan.FromMinutes(1);
+            });
 
             // General Configuration
             services.AddScoped<BasketCheckoutConsumer>();
