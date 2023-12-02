@@ -11,7 +11,7 @@ namespace Ordering.Application.Behaviors
 {
     public class UnhandledExceptionBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>
-        where TRequest : MediatR.IRequest<TResponse> {
+        where TRequest : IRequest<TResponse> {
 
         private readonly ILogger<TRequest> _logger;
 
@@ -19,7 +19,7 @@ namespace Ordering.Application.Behaviors
             _logger = logger;
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next) {
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken) {
             try {
                 return await next();
             } catch (Exception ex) {
