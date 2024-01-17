@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-microservices-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderdb
+  labels:
+    app: orderdb
+  namespace: shop-microservices-app
+spec:
+  replicas: 1
+  selector:
+      matchLabels:
+        app: orderdb
+  template:
+    metadata:
+      labels:
+        app: orderdb
+    spec:
+      terminationGracePeriodSeconds: 30
+      hostname: mssqlinst
+      securityContext:
+        fsGroup: 10001
+      containers:
+      - name: orderdb
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        ports:
+        - containerPort: 1433
+        resources:
+            limits:
+              cpu: '500m'
+              memory: '256Mi'              
+            requests:
+              cpu: '250m'
+              memory: '128Mi'
+        env:
+        - name: MSSQL_PID
+          value: "Developer"
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: MSSQL_SA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: orderdb-secret
+              key: MSSQL_SA_PASSWORD 
+        volumeMounts:
+        - name: orderdb-data
+          mountPath: /data/orderdb
+      volumes:
+        - name: orderdb-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderdb-service  
+  namespace: shop-microservices-app
+spec:
+  selector:
+    app: orderdb
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: orderdb-secret  
+  namespace: shop-microservices-app
+type: Opaque
+data:
+  MSSQL_SA_PASSWORD: cGFzc3dvcmQ=
+---      
